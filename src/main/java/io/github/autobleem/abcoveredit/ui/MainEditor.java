@@ -5,17 +5,64 @@
  */
 package io.github.autobleem.abcoveredit.ui;
 
+import io.github.autobleem.abcoveredit.controller.CoverDBProcessor;
+import io.github.autobleem.abcoveredit.domain.GameListEntry;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.DefaultListModel;
+import javax.swing.JFileChooser;
+
 /**
  *
  * @author artur.jakubowicz
  */
 public class MainEditor extends javax.swing.JFrame {
 
+    private String coverDBpath = null;
+    private List<GameListEntry> games = null;
+    private List<GameListEntry> allGames = null;
+    private GameListEntry selectedEntry;
+    private DefaultListModel gameListModel = new DefaultListModel();
+
+    private CoverDBProcessor cdbp;
+
     /**
      * Creates new form MainEditor
      */
     public MainEditor() {
         initComponents();
+        jTextField1.setText("");
+
+    }
+
+    public void filterModel(DefaultListModel<String> model, String filter) {
+        if (filter.trim().isEmpty())
+        {
+            games.clear();
+            model.clear();
+            for (GameListEntry s : allGames) {
+                games.add(s);
+                model.addElement(s.getTitle());
+            }
+            return;
+        }
+        for (GameListEntry s : allGames) {
+            if (!s.getTitle().toLowerCase().contains(filter.toLowerCase())) {
+                if (model.contains(s.getTitle())) {
+                    model.removeElement(s.getTitle());
+                    games.remove(s);
+                }
+            } else {
+                if (!model.contains(s.getTitle())) {
+                    model.addElement(s.getTitle());
+                    games.add(s);
+                }
+            }
+        }
     }
 
     /**
@@ -31,11 +78,11 @@ public class MainEditor extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jTextField1 = new javax.swing.JTextField();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList<>();
+        gameList = new javax.swing.JList<>();
         jButton3 = new javax.swing.JButton();
         jButton6 = new javax.swing.JButton();
         jButton7 = new javax.swing.JButton();
-        jButton9 = new javax.swing.JButton();
+        loadDBBtn = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         list1 = new java.awt.List();
         jButton1 = new javax.swing.JButton();
@@ -71,21 +118,32 @@ public class MainEditor extends javax.swing.JFrame {
         jLabel1.setText("Search:");
 
         jTextField1.setText("jTextField1");
-
-        jList1.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
+        jTextField1.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                jTextField1KeyTyped(evt);
+            }
         });
-        jScrollPane1.setViewportView(jList1);
+
+        gameList.setModel(gameListModel);
+        jScrollPane1.setViewportView(gameList);
 
         jButton3.setText("Clear");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         jButton6.setText("-");
 
         jButton7.setText("+");
 
-        jButton9.setText("Load...");
+        loadDBBtn.setText("Load...");
+        loadDBBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                loadDBBtnActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -102,7 +160,7 @@ public class MainEditor extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton9)
+                        .addComponent(loadDBBtn)
                         .addGap(18, 18, 18)
                         .addComponent(jButton7)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -113,14 +171,15 @@ public class MainEditor extends javax.swing.JFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton3)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jButton7)
                         .addComponent(jButton6)
-                        .addComponent(jButton9)))
+                        .addComponent(loadDBBtn))
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel1)
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jButton3)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(18, Short.MAX_VALUE))
@@ -360,9 +419,45 @@ public class MainEditor extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void loadDBBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadDBBtnActionPerformed
+        JFileChooser chooser = new JFileChooser();
+        int retVal = chooser.showOpenDialog(jPanel1);
+        if (retVal == JFileChooser.APPROVE_OPTION) {
+            try {
+                File f = chooser.getSelectedFile();
+                cdbp = new CoverDBProcessor(f.getCanonicalPath());
+                allGames = cdbp.getGamesList();
+                games = new ArrayList<>();
+                games.addAll(allGames);
+                jTextField1.setText("");
+                gameList.clearSelection();
+                gameListModel.clear();
+                this.setTitle("AB Cover Editor - "+f.getName());
+                
+                for (GameListEntry game : games) {
+                    gameListModel.addElement(game.getTitle());
+                }
+                gameList.setModel(gameListModel);
+            } catch (IOException ex) {
+                Logger.getLogger(MainEditor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_loadDBBtnActionPerformed
+
+    private void jTextField1KeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField1KeyTyped
+        // TODO add your handling code here:
+        filterModel(gameListModel, jTextField1.getText());
+    }//GEN-LAST:event_jTextField1KeyTyped
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        // TODO add your handling code here:
+        jTextField1.setText("");
+        filterModel(gameListModel, "");
+    }//GEN-LAST:event_jButton3ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JList<String> gameList;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
@@ -371,7 +466,6 @@ public class MainEditor extends javax.swing.JFrame {
     private javax.swing.JButton jButton6;
     private javax.swing.JButton jButton7;
     private javax.swing.JButton jButton8;
-    private javax.swing.JButton jButton9;
     private io.github.autobleem.abcoveredit.ui.components.JImagePanel jImagePanel2;
     private io.github.autobleem.abcoveredit.ui.components.JImagePanel jImagePanel3;
     private javax.swing.JLabel jLabel1;
@@ -381,7 +475,6 @@ public class MainEditor extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JList<String> jList1;
     private javax.swing.JList<String> jList2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
@@ -399,5 +492,6 @@ public class MainEditor extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField7;
     private javax.swing.JTextField jTextField8;
     private java.awt.List list1;
+    private javax.swing.JButton loadDBBtn;
     // End of variables declaration//GEN-END:variables
 }
