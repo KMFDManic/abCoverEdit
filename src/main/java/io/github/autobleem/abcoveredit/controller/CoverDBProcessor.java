@@ -63,7 +63,7 @@ public class CoverDBProcessor {
                 Logger.getLogger(CoverDBProcessor.class.getName()).log(Level.SEVERE, null, ex);
             }
             db = null;
-            dbFile = null;
+       
         }
     }
 
@@ -71,7 +71,7 @@ public class CoverDBProcessor {
            Game result = new Game();
         try {
            openConnection(dbFile);
-            String sql = "SELECT ID, TITLE, PUBLISHER, YEAR, PLAYERS, COVER FROM GAMES WHERE ID=?";
+            String sql = "SELECT ID, TITLE, PUBLISHER, RELEASE_YEAR, PLAYERS, COVER FROM GAME WHERE ID=?";
             PreparedStatement ps = db.prepareStatement(sql);
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();

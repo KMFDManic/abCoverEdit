@@ -49,10 +49,32 @@ public class MainEditor extends javax.swing.JFrame {
                    GameListEntry entry = games.get(listIndex);
                    selectedEntry = entry;
                    visibleGame = cdbp.getGameData(entry.getId());
+                   updateGameData();
                }
             }
         });
 
+    }
+    
+    public void updateGameData()
+    {
+        if (visibleGame==null)
+        {
+            jTextField3.setText("");
+            jTextField4.setText("");
+            jTextField5.setText("");
+            jTextField6.setText("");
+            jTextField7.setText("");
+            
+        } else
+        {
+            jTextField3.setText(visibleGame.getTitle());
+            jTextField4.setText(visibleGame.getPublisher());
+            jTextField7.setText(Integer.toString(visibleGame.getYear()));
+            jTextField6.setText(Integer.toString(visibleGame.getPlayers()));
+            jImagePanel2.setImage(visibleGame.getCover());
+            
+        }
     }
 
     public void filterModel(DefaultListModel<String> model, String filter) {
@@ -237,8 +259,10 @@ public class MainEditor extends javax.swing.JFrame {
 
         jTextField5.setText("jTextField3");
 
+        jTextField6.setEditable(false);
         jTextField6.setText("jTextField3");
 
+        jTextField7.setEditable(false);
         jTextField7.setText("jTextField3");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);

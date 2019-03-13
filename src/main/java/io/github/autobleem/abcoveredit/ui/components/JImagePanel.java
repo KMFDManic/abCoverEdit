@@ -27,6 +27,12 @@ public class JImagePanel extends JPanel {
             image = null;
     }
 
+    public void setImage(BufferedImage image) {
+        this.image = image;
+    }
+    
+    
+
     public void loadImage(String path)
     {
          try {                
