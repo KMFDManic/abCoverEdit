@@ -29,6 +29,7 @@ public class JImagePanel extends JPanel {
 
     public void setImage(BufferedImage image) {
         this.image = image;
+        repaint();
     }
     
     
@@ -37,8 +38,10 @@ public class JImagePanel extends JPanel {
     {
          try {                
           image = ImageIO.read(new File(path));
+           repaint();
        } catch (IOException ex) {
             image = null;
+             repaint();
             
        }
     }

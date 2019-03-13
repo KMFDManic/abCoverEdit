@@ -8,6 +8,8 @@ package io.github.autobleem.abcoveredit;
 import io.github.autobleem.abcoveredit.ui.MainEditor;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.net.URL;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
 /**
@@ -48,6 +50,12 @@ public class Application {
             public void run() {
                 JFrame frame = new MainEditor();
                 frame.setTitle("AutoBleem Cover Editor");
+
+                URL iconURL = getClass().getResource("/io/github/autobleem/ablogo1.png");
+// iconURL is null when not found
+                ImageIcon icon = new ImageIcon(iconURL);
+                frame.setIconImage(icon.getImage());
+                
                 Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
                 frame.setLocation(dim.width / 2 - frame.getSize().width / 2, dim.height / 2 - frame.getSize().height / 2);
                 frame.setResizable(false);
