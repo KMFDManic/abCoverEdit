@@ -6,6 +6,7 @@
 package io.github.autobleem.abcoveredit.ui;
 
 import io.github.autobleem.abcoveredit.controller.CoverDBProcessor;
+import io.github.autobleem.abcoveredit.domain.Game;
 import io.github.autobleem.abcoveredit.domain.GameListEntry;
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +16,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 /**
  *
@@ -26,6 +29,7 @@ public class MainEditor extends javax.swing.JFrame {
     private List<GameListEntry> games = null;
     private List<GameListEntry> allGames = null;
     private GameListEntry selectedEntry;
+    private Game visibleGame = null;
     private DefaultListModel gameListModel = new DefaultListModel();
 
     private CoverDBProcessor cdbp;
@@ -36,6 +40,18 @@ public class MainEditor extends javax.swing.JFrame {
     public MainEditor() {
         initComponents();
         jTextField1.setText("");
+        gameList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+               int listIndex = gameList.getSelectedIndex();
+               if (listIndex!=-1)
+               {
+                   GameListEntry entry = games.get(listIndex);
+                   selectedEntry = entry;
+                   visibleGame = cdbp.getGameData(entry.getId());
+               }
+            }
+        });
 
     }
 
@@ -446,13 +462,19 @@ public class MainEditor extends javax.swing.JFrame {
 
     private void jTextField1KeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField1KeyTyped
         // TODO add your handling code here:
-        filterModel(gameListModel, jTextField1.getText());
+        if (allGames!=null) 
+        {
+           filterModel(gameListModel, jTextField1.getText());
+        }
     }//GEN-LAST:event_jTextField1KeyTyped
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
+           if (allGames!=null) 
+        {
         jTextField1.setText("");
         filterModel(gameListModel, "");
+        }
     }//GEN-LAST:event_jButton3ActionPerformed
 
 

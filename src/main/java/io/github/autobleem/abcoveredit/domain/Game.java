@@ -5,6 +5,7 @@
  */
 package io.github.autobleem.abcoveredit.domain;
 
+import java.awt.image.BufferedImage;
 import java.util.List;
 
 /**
@@ -18,6 +19,27 @@ public class Game {
     private int year;
     private int players;
     private List<String> serials;
+    private byte [] coverData;
+    private BufferedImage cover;
+
+    public BufferedImage getCover() {
+        return cover;
+    }
+
+    public void setCover(BufferedImage cover) {
+        this.cover = cover;
+    }
+    
+    
+    public byte[] getCoverData() {
+        return coverData;
+    }
+
+    public void setCoverData(byte[] coverData) {
+        this.coverData = coverData;
+    }
+    
+    
 
     public int getId() {
         return id;
