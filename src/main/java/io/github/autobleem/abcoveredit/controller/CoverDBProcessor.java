@@ -17,6 +17,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -187,6 +188,18 @@ public class CoverDBProcessor {
         }
     }
 
+    public void vacuum() {
+        try {
+            openConnection(dbFile);
+            Statement stmt = db.createStatement();
+            stmt.executeUpdate("VACUUM");
+            closeConnection();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(CoverDBProcessor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     public void updateGame(Game game) {
         String sql = "UPDATE GAME SET TITLE=?, PUBLISHER=?, RELEASE=?, PLAYERS=?, COVER=?, VERSION=VERSION+1 "
                 + " WHERE ID = ?";
@@ -205,6 +218,7 @@ public class CoverDBProcessor {
             ps.execute();
             ps.close();
 
+            closeConnection();
         } catch (SQLException ex) {
             Logger.getLogger(CoverDBProcessor.class.getName()).log(Level.SEVERE, null, ex);
         }
